@@ -37,6 +37,7 @@ module OraUtils
       Puppet.debug "Executing sql statement :\n #{command}"
       script = command_file( template('puppet:///modules/oracle/shared/execute.sql.erb', binding))
       execute "@#{script}"
+      FileUtils.rm(script)
       @parse ? File.read(output_file) : ''
     end
 
