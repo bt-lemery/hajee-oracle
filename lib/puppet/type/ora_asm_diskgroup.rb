@@ -9,54 +9,52 @@ require 'orabase/resources/ora_asm_diskgroup'
 
 module Puppet
   #
-  # Create a new type oracle_user. Oracle user, works in conjunction 
+  # Create a new type oracle_user. Oracle user, works in conjunction
   # with the SqlResource provider
   #
-  newtype(:ora_asm_diskgroup) do
-    include EasyType
-    include ::OraUtils::OracleAccess
-    extend ::OraUtils::TitleParser
+  class Type
+    newtype(:ora_asm_diskgroup) do
+      include EasyType
+      include ::OraUtils::OracleAccess
+      extend ::OraUtils::TitleParser
 
-    desc %q{
-      This resource allows you to manage a user in an Oracle database.
-    }
+      desc 'This resource allows you to manage a user in an Oracle database.'
 
-    ensurable
+      ensurable
 
-    set_command(:sql)
+      set_command(:sql)
 
-    to_get_raw_resources do
-      ::Resources::OraAsmDiskgroup.raw_resources
+      to_get_raw_resources do
+        ::Resources::OraAsmDiskgroup.raw_resources
+      end
+
+      on_create do |command_builder|
+        statement = template('puppet:///modules/oracle/ora_asm_diskgroup/create.sql.erb', binding)
+        command_builder.add(statement, :sid => sid)
+      end
+
+      on_modify do ||
+        Puppet.info 'No disk groups modified. Function not implemented yet.'
+        nil
+      end
+
+      on_destroy do |command_builder|
+        statement = template('puppet:///modules/oracle/ora_asm_diskgroup/destroy.sql.erb', binding)
+        command_builder.add(statement, :sid => sid)
+      end
+
+      map_title_to_asm_sid(:groupname) { /^((@?.*?)?(\@.*?)?)$/ }
+
+      parameter :name
+      parameter :groupname
+      parameter :asm_sid # The included file is asm_sid, but the parameter is named sid
+
+      parameter :diskgroup_state
+      property  :redundancy_type
+      property  :au_size
+      property  :compat_asm
+      property  :compat_rdbms
+      property  :disks
     end
-
-    on_create do | command_builder |
-      statement = template('puppet:///modules/oracle/ora_asm_diskgroup/create.sql.erb', binding)
-      command_builder.add(statement, :sid => sid)
-    end
-
-    on_modify do | command_builder |
-      Puppet.info "No disk groups modified. Function not implemented yet."
-      nil
-    end
-
-    on_destroy do | command_builder |
-      statement = template('puppet:///modules/oracle/ora_asm_diskgroup/destroy.sql.erb', binding)
-      command_builder.add(statement, :sid => sid)
-    end
-
-
-    map_title_to_asm_sid(:groupname) { /^((@?.*?)?(\@.*?)?)$/}
-
-    parameter :name
-    parameter :groupname
-    parameter :asm_sid      # The included file is asm_sid, but the parameter is named sid
-
-    parameter :diskgroup_state
-    property  :redundancy_type
-    property  :au_size
-    property  :compat_asm
-    property  :compat_rdbms
-    property  :disks
-
   end
 end
