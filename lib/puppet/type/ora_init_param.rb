@@ -125,7 +125,7 @@ module Puppet
       end
 
       def self.spfile
-        sql_on_all_sids "select 'SPFILE' as scope, t.isspecified, t.name, t.display_value, t.sid as for_sid from gv$spparameter t, gv$instance b where t.inst_id = b.instance_number and t.isspecified = 'TRUE'"
+        sql_on_all_sids %q{select 'SPFILE' as scope, t.isspecified, t.name, t.display_value, t.sid as for_sid from gv$spparameter t, gv$instance b where t.inst_id = b.instance_number and t.isspecified = 'TRUE'}
       end
 
       def self.without_empty_values(set)
